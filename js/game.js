@@ -49,7 +49,7 @@ Window.newGame = function () {
       Cursor.pos.y = cursorY-56;
     }.bind(this);
 
-    Player.ctx = this.ctx;
+    Player.cursor = Cursor;
 
     this.objects.push(Player);
     this.objects.push(Cursor);

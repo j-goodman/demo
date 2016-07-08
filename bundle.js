@@ -95,7 +95,7 @@
 	      Cursor.pos.y = cursorY-56;
 	    }.bind(this);
 	
-	    Player.ctx = this.ctx;
+	    Player.cursor = Cursor;
 	
 	    this.objects.push(Player);
 	    this.objects.push(Cursor);
@@ -172,13 +172,27 @@
 	
 	Sprite.prototype.draw = function (ctx, pos, viewAnchor) {
 	  if (ctx) {
-	    ctx.drawImage(
-	      this.frames[this.frame],
-	      pos.x-viewAnchor.x,
-	      pos.y-viewAnchor.y,
-	      this.width,
-	      this.height
-	    );
+	    if (this.angle) {
+	      ctx.save();
+	      ctx.translate(780/2, -480/2);
+	      ctx.rotate(this.angle*Math.PI/180);
+	      ctx.drawImage(
+	        this.frames[this.frame],
+	        pos.x-viewAnchor.x,
+	        pos.y-viewAnchor.y,
+	        this.width,
+	        this.height
+	      );
+	      ctx.restore();
+	    } else {
+	      ctx.drawImage(
+	        this.frames[this.frame],
+	        pos.x-viewAnchor.x,
+	        pos.y-viewAnchor.y,
+	        this.width,
+	        this.height
+	      );
+	    }
 	    if (this.rate) {
 	      this.animate();
 	    }
@@ -233,11 +247,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var Sprite = __webpack_require__(2);
-	var Util = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"./util.js\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+	var Util = __webpack_require__(9);
 	var objects = __webpack_require__(3);
 	
 	var player = {
-	  ctx: undefined, // defined in game.js
+	  cursor: undefined, // defined in game.js
 	
 	  pos: {
 	    x: 400,
@@ -245,12 +259,15 @@
 	  },
 	
 	  run: function () {
-	    // do nothing
+	    this.sprite.angle = (this.util.getAngle(objects[0].pos, objects[1].pos) * 180/Math.PI);
+	    // this.sprite.angle = 30;
 	  },
 	
 	  sprite: (new Sprite(32, 32, 0, [
 	    "player.gif",
 	  ])),
+	
+	  util: Util,
 	
 	  getImageAngle: function () {
 	
@@ -323,7 +340,9 @@
 /***/ function(module, exports) {
 
 	util = {
-	  
+	  getAngle: function (posA, posB) {
+	    return Math.abs(Math.atan2(posB.y - posA.y, posB.x - posA.x));
+	  },
 	};
 	
 	module.exports = util;

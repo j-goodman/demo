@@ -1,9 +1,9 @@
 var Sprite = require('../sprite.js');
-var Util = require('./util.js');
+var Util = require('../util.js');
 var objects = require('../boxes/objects.js');
 
 var player = {
-  ctx: undefined, // defined in game.js
+  cursor: undefined, // defined in game.js
 
   pos: {
     x: 400,
@@ -11,12 +11,15 @@ var player = {
   },
 
   run: function () {
-    // do nothing
+    this.sprite.angle = (this.util.getAngle(objects[0].pos, objects[1].pos) * 180/Math.PI);
+    // this.sprite.angle = 30;
   },
 
   sprite: (new Sprite(32, 32, 0, [
     "player.gif",
   ])),
+
+  util: Util,
 
   getImageAngle: function () {
 
