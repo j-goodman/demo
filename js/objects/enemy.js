@@ -1,26 +1,33 @@
 var Bullet = require('./bullet.js');
 var objects = require('../boxes/objects.js');
+var Player = require('./player.js');
 var Sprite = require('../sprite.js');
 var Util = require('../util.js');
 
-var player = {
+var enemy = {
   accel: 0.5,
   angle: 0,
   bullet: undefined, // defined in game.js
   cooldown: 30,
   cursor: undefined, // defined in game.js
+  lean: "left",
   maxSpeed: 4,
-  pos: {
-    x: 400,
-    y: 240,
-  },
   objects: objects,
+  player: undefined, // defined in game.js
+  pos: {
+    x: 600,
+    y: 120,
+  },
+  runningForwards: true,
+  runningBack: false,
+  runningRight: false,
+  runningLeft: false,
   speed: {
     x: 0,
     y: 0,
   },
-  sprite: (new Sprite(32, 32, 0, [
-    "player.gif",
+  sprite: (new Sprite(28, 28, 0, [
+    "enemy.gif",
   ])),
 
   brake: function () {
@@ -32,6 +39,29 @@ var player = {
     if (!this.cooldown) {
       objects.push(new this.bullet (this.pos, this.cursor));
       this.cooldown = 15;
+    }
+  },
+
+  fight: function ()  {
+    if (Util.distanceBetween(this.pos, this.player.pos) > 200) {
+      this.runningForwards = true;
+      this.runningLeft = false;
+      this.runningRight = false;
+      this.runningBack = false;
+    } else {
+      this.runningForwards = false;
+      if (this.lean=='left') {
+        this.runningLeft = true;
+      } else {
+        this.runningRight = true;
+      }
+      if (!Math.floor(Math.random()*60)) {
+        this.lean = this.lean == 'left' ? 'right' : 'left';
+      }
+      if (!Math.floor(Math.random()*15)) {
+        this.fire();
+      }
+      this.runningBack = true;
     }
   },
 
@@ -72,6 +102,7 @@ var player = {
   },
 
   run: function () {
+    this.fight();
     this.angle = (Util.getAngle(this.pos, this.cursor.pos) * 180/Math.PI);
     this.sprite.angle = this.angle;
     this.pos.x += this.speed.x;
@@ -94,4 +125,4 @@ var player = {
 
 };
 
-module.exports = player;
+module.exports = enemy;

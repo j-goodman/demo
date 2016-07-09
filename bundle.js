@@ -44,11 +44,14 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	console.log("Now it begins.");
+	console.log("Use the mouse with the arrow keys / WASD to move, and the spacebar to fire.");
+	var Bullet = __webpack_require__(8);
 	
 	Window.newGame = function () {
 	  var Player = __webpack_require__(1);
+	  var Enemy = __webpack_require__(9);
 	  var Cursor = __webpack_require__(5);
+	  var EnemyCursor = __webpack_require__(10);
 	  var View = __webpack_require__(6);
 	  var controller = __webpack_require__(7);
 	  var mouseEvents = __webpack_require__(7);
@@ -96,9 +99,15 @@
 	    }.bind(this);
 	
 	    Player.cursor = Cursor;
+	    Enemy.cursor = EnemyCursor;
+	    Enemy.player = Player;
+	    Player.bullet = Bullet;
+	    Enemy.bullet = Bullet;
 	
 	    this.objects.push(Player);
+	    this.objects.push(Enemy);
 	    this.objects.push(Cursor);
+	    this.objects.push(EnemyCursor);
 	
 	    this.interval = setInterval(function () {
 	      var ctx = this.ctx;
@@ -136,6 +145,7 @@
 	var player = {
 	  accel: 0.5,
 	  angle: 0,
+	  bullet: undefined, // defined in game.js
 	  cooldown: 30,
 	  cursor: undefined, // defined in game.js
 	  maxSpeed: 4,
@@ -159,8 +169,8 @@
 	
 	  fire: function () {
 	    if (!this.cooldown) {
-	      objects.push(new Bullet (this.pos, this.cursor));
-	      this.cooldown = 30;
+	      objects.push(new this.bullet (this.pos, this.cursor));
+	      this.cooldown = 15;
 	    }
 	  },
 	
@@ -302,6 +312,12 @@
 	  getAngle: function (posA, posB) {
 	    return Math.atan2(posB.y - posA.y, posB.x - posA.x);
 	  },
+	
+	  distanceBetween: function (firstPos, secondPos) {
+	    xGap = Math.abs(firstPos.x - secondPos.x);
+	    yGap = Math.abs(firstPos.y - secondPos.y);
+	    return(Math.sqrt(xGap*xGap+yGap*yGap));
+	  },
 	};
 	
 	module.exports = util;
@@ -433,9 +449,12 @@
 
 	var Sprite = __webpack_require__(2);
 	var Util = __webpack_require__(3);
+	var Player = __webpack_require__(1);
+	var Enemy = __webpack_require__(9);
 	var objects = __webpack_require__(4);
 	
 	var Bullet = function (pos, cursor) {
+	  this.age = 0;
 	  this.pos = {
 	    x: pos.x,
 	    y: pos.y,
@@ -451,13 +470,206 @@
 	  };
 	};
 	
+	Bullet.prototype.checkCollision = function () {
+	  if (Util.distanceBetween(this.pos, Player.pos) < Player.sprite.width/2) {
+	    console.log("Player hit.");
+	  }
+	  if (Util.distanceBetween(this.pos, Enemy.pos) < Enemy.sprite.width/2) {
+	    console.log("Opponent hit.");
+	  }
+	};
+	
 	Bullet.prototype.run = function () {
+	  this.age += 1;
 	  this.sprite.angle = this.angle;
 	  this.pos.x += this.speed.x;
 	  this.pos.y += this.speed.y;
+	  if (this.age > 12) {
+	    this.checkCollision();
+	  }
 	};
 	
 	module.exports = Bullet;
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Bullet = __webpack_require__(8);
+	var objects = __webpack_require__(4);
+	var Player = __webpack_require__(1);
+	var Sprite = __webpack_require__(2);
+	var Util = __webpack_require__(3);
+	
+	var enemy = {
+	  accel: 0.5,
+	  angle: 0,
+	  bullet: undefined, // defined in game.js
+	  cooldown: 30,
+	  cursor: undefined, // defined in game.js
+	  lean: "left",
+	  maxSpeed: 4,
+	  objects: objects,
+	  player: undefined, // defined in game.js
+	  pos: {
+	    x: 600,
+	    y: 120,
+	  },
+	  runningForwards: true,
+	  runningBack: false,
+	  runningRight: false,
+	  runningLeft: false,
+	  speed: {
+	    x: 0,
+	    y: 0,
+	  },
+	  sprite: (new Sprite(28, 28, 0, [
+	    "enemy.gif",
+	  ])),
+	
+	  brake: function () {
+	    this.speed.x *= this.speed.x !== 0 ? 0.8 : 1;
+	    this.speed.y *= this.speed.y !== 0 ? 0.8 : 1;
+	  },
+	
+	  fire: function () {
+	    if (!this.cooldown) {
+	      objects.push(new this.bullet (this.pos, this.cursor));
+	      this.cooldown = 15;
+	    }
+	  },
+	
+	  fight: function ()  {
+	    if (Util.distanceBetween(this.pos, this.player.pos) > 200) {
+	      this.runningForwards = true;
+	      this.runningLeft = false;
+	      this.runningRight = false;
+	      this.runningBack = false;
+	    } else {
+	      this.runningForwards = false;
+	      if (this.lean=='left') {
+	        this.runningLeft = true;
+	      } else {
+	        this.runningRight = true;
+	      }
+	      if (!Math.floor(Math.random()*60)) {
+	        this.lean = this.lean == 'left' ? 'right' : 'left';
+	      }
+	      if (!Math.floor(Math.random()*15)) {
+	        this.fire();
+	      }
+	      this.runningBack = true;
+	    }
+	  },
+	
+	  goBack: function () {
+	    this.speed.x += this.accel * Math.cos((this.angle+180) * Math.PI/180);
+	    this.speed.y += this.accel * Math.sin((this.angle+180) * Math.PI/180);
+	    if (Math.sqrt(this.speed.x*this.speed.x + this.speed.y*this.speed.y) > this.maxSpeed) {
+	      this.speed.x *= 0.9;
+	      this.speed.y *= 0.9;
+	    }
+	  },
+	
+	  goForwards: function () {
+	    this.speed.x += this.accel * Math.cos(this.angle * Math.PI/180);
+	    this.speed.y += this.accel * Math.sin(this.angle * Math.PI/180);
+	    if (Math.sqrt(this.speed.x*this.speed.x + this.speed.y*this.speed.y) > this.maxSpeed) {
+	      this.speed.x *= 0.9;
+	      this.speed.y *= 0.9;
+	    }
+	  },
+	
+	  goLeft: function () {
+	    this.speed.x += this.accel * Math.cos((this.angle-90) * Math.PI/180);
+	    this.speed.y += this.accel * Math.sin((this.angle-90) * Math.PI/180);
+	    if (Math.sqrt(this.speed.x*this.speed.x + this.speed.y*this.speed.y) > this.maxSpeed) {
+	      this.speed.x *= 0.9;
+	      this.speed.y *= 0.9;
+	    }
+	  },
+	
+	  goRight: function () {
+	    this.speed.x += this.accel * Math.cos((this.angle+90) * Math.PI/180);
+	    this.speed.y += this.accel * Math.sin((this.angle+90) * Math.PI/180);
+	    if (Math.sqrt(this.speed.x*this.speed.x + this.speed.y*this.speed.y) > this.maxSpeed) {
+	      this.speed.x *= 0.9;
+	      this.speed.y *= 0.9;
+	    }
+	  },
+	
+	  run: function () {
+	    this.fight();
+	    this.angle = (Util.getAngle(this.pos, this.cursor.pos) * 180/Math.PI);
+	    this.sprite.angle = this.angle;
+	    this.pos.x += this.speed.x;
+	    this.pos.y += this.speed.y;
+	    if (this.runningForwards) {
+	      this.goForwards();
+	    } else if (this.runningRight) {
+	      this.goRight();
+	    } else if (this.runningLeft) {
+	      this.goLeft();
+	    } else if (this.runningBack) {
+	      this.goBack();
+	    } else {
+	      this.brake();
+	    }
+	    if (this.cooldown > 0) {
+	      this.cooldown -= 1;
+	    }
+	  },
+	
+	};
+	
+	module.exports = enemy;
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Sprite = __webpack_require__(2);
+	var objects = __webpack_require__(4);
+	var Player = __webpack_require__(1);
+	
+	var enemyCursor = {
+	  pos: {
+	    x: 200,
+	    y: 200,
+	  },
+	  speed: {
+	    x: 0,
+	    y: 0,
+	  },
+	  run: function () {
+	    this.pos.x += this.speed.x;
+	    this.pos.y += this.speed.y;
+	    if (this.speed.x > 7) {
+	      this.speed.x = 6;
+	    }
+	    if (this.speed.y > 7) {
+	      this.speed.y = 6;
+	    }
+	    if (this.pos.x >= Player.pos.x + Player.speed.x*30) {
+	      this.speed.x -= 1;
+	    } else {
+	      this.speed.x += 1;
+	    }
+	    if (this.pos.y >= Player.pos.y + Player.speed.y*30) {
+	      this.speed.y -= 1;
+	    } else {
+	      this.speed.y += 1;
+	    }
+	  },
+	  sprite: (new Sprite(0, 0, 0, [
+	  // sprite: (new Sprite(32, 32, 0, [ // <-- for enemy's cursor to be visible
+	    "crosshairs.gif",
+	  ])),
+	};
+	
+	module.exports = enemyCursor;
 
 
 /***/ }

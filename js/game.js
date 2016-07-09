@@ -1,8 +1,11 @@
-console.log("Now it begins.");
+console.log("Use the mouse with the arrow keys / WASD to move, and the spacebar to fire.");
+var Bullet = require('./objects/bullet.js');
 
 Window.newGame = function () {
   var Player = require('./objects/player.js');
+  var Enemy = require('./objects/enemy.js');
   var Cursor = require('./objects/cursor.js');
+  var EnemyCursor = require('./objects/enemyCursor.js');
   var View = require('./objects/view.js');
   var controller = require('./controller.js');
   var mouseEvents = require('./controller.js');
@@ -50,9 +53,15 @@ Window.newGame = function () {
     }.bind(this);
 
     Player.cursor = Cursor;
+    Enemy.cursor = EnemyCursor;
+    Enemy.player = Player;
+    Player.bullet = Bullet;
+    Enemy.bullet = Bullet;
 
     this.objects.push(Player);
+    this.objects.push(Enemy);
     this.objects.push(Cursor);
+    this.objects.push(EnemyCursor);
 
     this.interval = setInterval(function () {
       var ctx = this.ctx;

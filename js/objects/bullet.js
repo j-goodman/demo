@@ -1,8 +1,11 @@
 var Sprite = require('../sprite.js');
 var Util = require('../util.js');
+var Player = require('./player.js');
+var Enemy = require('./enemy.js');
 var objects = require('../boxes/objects.js');
 
 var Bullet = function (pos, cursor) {
+  this.age = 0;
   this.pos = {
     x: pos.x,
     y: pos.y,
@@ -18,10 +21,23 @@ var Bullet = function (pos, cursor) {
   };
 };
 
+Bullet.prototype.checkCollision = function () {
+  if (Util.distanceBetween(this.pos, Player.pos) < Player.sprite.width/2) {
+    console.log("Player hit.");
+  }
+  if (Util.distanceBetween(this.pos, Enemy.pos) < Enemy.sprite.width/2) {
+    console.log("Opponent hit.");
+  }
+};
+
 Bullet.prototype.run = function () {
+  this.age += 1;
   this.sprite.angle = this.angle;
   this.pos.x += this.speed.x;
   this.pos.y += this.speed.y;
+  if (this.age > 12) {
+    this.checkCollision();
+  }
 };
 
 module.exports = Bullet;
