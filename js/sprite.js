@@ -41,27 +41,18 @@ Sprite.prototype.animate = function () {
 
 Sprite.prototype.draw = function (ctx, pos, viewAnchor) {
   if (ctx) {
-    if (this.angle) {
       ctx.save();
-      ctx.translate(780/2, -480/2);
-      ctx.rotate(this.angle*Math.PI/180);
+      ctx.translate(pos.x, pos.y);
+      ctx.rotate((this.angle+90)*Math.PI/180);
+      ctx.translate(-this.width/2, -this.height/2);
       ctx.drawImage(
         this.frames[this.frame],
-        pos.x-viewAnchor.x,
-        pos.y-viewAnchor.y,
+        0-viewAnchor.x,
+        0-viewAnchor.y,
         this.width,
         this.height
       );
       ctx.restore();
-    } else {
-      ctx.drawImage(
-        this.frames[this.frame],
-        pos.x-viewAnchor.x,
-        pos.y-viewAnchor.y,
-        this.width,
-        this.height
-      );
-    }
     if (this.rate) {
       this.animate();
     }

@@ -23,7 +23,7 @@ Window.newGame = function () {
   };
 
   Game.connectController = function () {
-    // controller(document, Player);
+    controller(document, Player);
   };
 
   Game.setView = function () {

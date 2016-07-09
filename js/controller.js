@@ -3,20 +3,43 @@ var controller = function (document, player) {
     switch(e.keyCode) {
     case 68: // d
     case 39: //right
-      // player.goRight();
+      player.runningRight = true;
       break;
     case 65: // a
     case 37: //left
-      // player.goLeft();
+      player.runningLeft = true;
       break;
     case 87: // w
     case 38: //up
-      // player.goForwards();
+      player.runningForwards = true;
       break;
-    case 83: // w
-    case 40: //up
-      // player.goBack();
+    case 83: // s
+    case 40: //down
+      player.runningBack = true;
       break;
+    case 32: //space
+      player.fire();
+      break;
+    }
+  };
+  document.onkeyup = function (e) {
+    switch(e.keyCode) {
+      case 87: // w
+      case 38: //up
+        player.runningForwards = false;
+        break;
+      case 68: // d
+      case 39: //right
+        player.runningRight = false;
+        break;
+      case 65: // a
+      case 37: //left
+        player.runningLeft = false;
+        break;
+      case 83: // s
+      case 40: //down
+        player.runningBack = false;
+        break;
     }
   };
 };

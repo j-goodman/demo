@@ -47,14 +47,14 @@
 	console.log("Now it begins.");
 	
 	Window.newGame = function () {
-	  var Player = __webpack_require__(6);
-	  var Cursor = __webpack_require__(8);
-	  var View = __webpack_require__(7);
-	  var controller = __webpack_require__(5);
-	  var mouseEvents = __webpack_require__(5);
+	  var Player = __webpack_require__(1);
+	  var Cursor = __webpack_require__(5);
+	  var View = __webpack_require__(6);
+	  var controller = __webpack_require__(7);
+	  var mouseEvents = __webpack_require__(7);
 	  // every object has a .run() function, a .sprite, and a .pos
 	
-	  var Util = __webpack_require__(9);
+	  var Util = __webpack_require__(3);
 	
 	  var Game = {};
 	
@@ -69,7 +69,7 @@
 	  };
 	
 	  Game.connectController = function () {
-	    // controller(document, Player);
+	    controller(document, Player);
 	  };
 	
 	  Game.setView = function () {
@@ -86,7 +86,7 @@
 	      clearInterval(this.interval);
 	    }
 	
-	    this.objects = __webpack_require__(3);
+	    this.objects = __webpack_require__(4);
 	
 	    document.onmousemove = function (e) {
 	      cursorX = e.pageX;
@@ -125,7 +125,108 @@
 
 
 /***/ },
-/* 1 */,
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Bullet = __webpack_require__(8);
+	var objects = __webpack_require__(4);
+	var Sprite = __webpack_require__(2);
+	var Util = __webpack_require__(3);
+	
+	var player = {
+	  accel: 0.5,
+	  angle: 0,
+	  cooldown: 30,
+	  cursor: undefined, // defined in game.js
+	  maxSpeed: 4,
+	  pos: {
+	    x: 400,
+	    y: 240,
+	  },
+	  objects: objects,
+	  speed: {
+	    x: 0,
+	    y: 0,
+	  },
+	  sprite: (new Sprite(32, 32, 0, [
+	    "player.gif",
+	  ])),
+	
+	  brake: function () {
+	    this.speed.x *= this.speed.x !== 0 ? 0.8 : 1;
+	    this.speed.y *= this.speed.y !== 0 ? 0.8 : 1;
+	  },
+	
+	  fire: function () {
+	    if (!this.cooldown) {
+	      objects.push(new Bullet (this.pos, this.cursor));
+	      this.cooldown = 30;
+	    }
+	  },
+	
+	  goBack: function () {
+	    this.speed.x += this.accel * Math.cos((this.angle+180) * Math.PI/180);
+	    this.speed.y += this.accel * Math.sin((this.angle+180) * Math.PI/180);
+	    if (Math.sqrt(this.speed.x*this.speed.x + this.speed.y*this.speed.y) > this.maxSpeed) {
+	      this.speed.x *= 0.9;
+	      this.speed.y *= 0.9;
+	    }
+	  },
+	
+	  goForwards: function () {
+	    this.speed.x += this.accel * Math.cos(this.angle * Math.PI/180);
+	    this.speed.y += this.accel * Math.sin(this.angle * Math.PI/180);
+	    if (Math.sqrt(this.speed.x*this.speed.x + this.speed.y*this.speed.y) > this.maxSpeed) {
+	      this.speed.x *= 0.9;
+	      this.speed.y *= 0.9;
+	    }
+	  },
+	
+	  goLeft: function () {
+	    this.speed.x += this.accel * Math.cos((this.angle-90) * Math.PI/180);
+	    this.speed.y += this.accel * Math.sin((this.angle-90) * Math.PI/180);
+	    if (Math.sqrt(this.speed.x*this.speed.x + this.speed.y*this.speed.y) > this.maxSpeed) {
+	      this.speed.x *= 0.9;
+	      this.speed.y *= 0.9;
+	    }
+	  },
+	
+	  goRight: function () {
+	    this.speed.x += this.accel * Math.cos((this.angle+90) * Math.PI/180);
+	    this.speed.y += this.accel * Math.sin((this.angle+90) * Math.PI/180);
+	    if (Math.sqrt(this.speed.x*this.speed.x + this.speed.y*this.speed.y) > this.maxSpeed) {
+	      this.speed.x *= 0.9;
+	      this.speed.y *= 0.9;
+	    }
+	  },
+	
+	  run: function () {
+	    this.angle = (Util.getAngle(this.pos, this.cursor.pos) * 180/Math.PI);
+	    this.sprite.angle = this.angle;
+	    this.pos.x += this.speed.x;
+	    this.pos.y += this.speed.y;
+	    if (this.runningForwards) {
+	      this.goForwards();
+	    } else if (this.runningRight) {
+	      this.goRight();
+	    } else if (this.runningLeft) {
+	      this.goLeft();
+	    } else if (this.runningBack) {
+	      this.goBack();
+	    } else {
+	      this.brake();
+	    }
+	    if (this.cooldown > 0) {
+	      this.cooldown -= 1;
+	    }
+	  },
+	
+	};
+	
+	module.exports = player;
+
+
+/***/ },
 /* 2 */
 /***/ function(module, exports) {
 
@@ -172,27 +273,18 @@
 	
 	Sprite.prototype.draw = function (ctx, pos, viewAnchor) {
 	  if (ctx) {
-	    if (this.angle) {
 	      ctx.save();
-	      ctx.translate(780/2, -480/2);
-	      ctx.rotate(this.angle*Math.PI/180);
+	      ctx.translate(pos.x, pos.y);
+	      ctx.rotate((this.angle+90)*Math.PI/180);
+	      ctx.translate(-this.width/2, -this.height/2);
 	      ctx.drawImage(
 	        this.frames[this.frame],
-	        pos.x-viewAnchor.x,
-	        pos.y-viewAnchor.y,
+	        0-viewAnchor.x,
+	        0-viewAnchor.y,
 	        this.width,
 	        this.height
 	      );
 	      ctx.restore();
-	    } else {
-	      ctx.drawImage(
-	        this.frames[this.frame],
-	        pos.x-viewAnchor.x,
-	        pos.y-viewAnchor.y,
-	        this.width,
-	        this.height
-	      );
-	    }
 	    if (this.rate) {
 	      this.animate();
 	    }
@@ -206,79 +298,49 @@
 /* 3 */
 /***/ function(module, exports) {
 
+	util = {
+	  getAngle: function (posA, posB) {
+	    return Math.atan2(posB.y - posA.y, posB.x - posA.x);
+	  },
+	};
+	
+	module.exports = util;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
 	var objects = [];
 	
 	module.exports = objects;
 
 
 /***/ },
-/* 4 */,
 /* 5 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	var controller = function (document, player) {
-	  document.onkeydown = function (e) {
-	    switch(e.keyCode) {
-	    case 68: // d
-	    case 39: //right
-	      // player.goRight();
-	      break;
-	    case 65: // a
-	    case 37: //left
-	      // player.goLeft();
-	      break;
-	    case 87: // w
-	    case 38: //up
-	      // player.goForwards();
-	      break;
-	    case 83: // w
-	    case 40: //up
-	      // player.goBack();
-	      break;
-	    }
-	  };
+	var Sprite = __webpack_require__(2);
+	var objects = __webpack_require__(4);
+	
+	var cursor = {
+	  pos: {
+	    x: 90,
+	    y: 90,
+	  },
+	  run: function () {
+	    // do nothing
+	  },
+	  sprite: (new Sprite(32, 32, 0, [
+	    "crosshairs.gif",
+	  ])),
 	};
 	
-	module.exports = controller;
+	module.exports = cursor;
 
 
 /***/ },
 /* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Sprite = __webpack_require__(2);
-	var Util = __webpack_require__(9);
-	var objects = __webpack_require__(3);
-	
-	var player = {
-	  cursor: undefined, // defined in game.js
-	
-	  pos: {
-	    x: 400,
-	    y: 240,
-	  },
-	
-	  run: function () {
-	    this.sprite.angle = (this.util.getAngle(objects[0].pos, objects[1].pos) * 180/Math.PI);
-	    // this.sprite.angle = 30;
-	  },
-	
-	  sprite: (new Sprite(32, 32, 0, [
-	    "player.gif",
-	  ])),
-	
-	  util: Util,
-	
-	  getImageAngle: function () {
-	
-	  },
-	};
-	
-	module.exports = player;
-
-
-/***/ },
-/* 7 */
 /***/ function(module, exports) {
 
 	var View = function (topLeftX, topLeftY, bottomRightX, bottomRightY, maxX, maxY) {
@@ -313,39 +375,89 @@
 
 
 /***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	var controller = function (document, player) {
+	  document.onkeydown = function (e) {
+	    switch(e.keyCode) {
+	    case 68: // d
+	    case 39: //right
+	      player.runningRight = true;
+	      break;
+	    case 65: // a
+	    case 37: //left
+	      player.runningLeft = true;
+	      break;
+	    case 87: // w
+	    case 38: //up
+	      player.runningForwards = true;
+	      break;
+	    case 83: // s
+	    case 40: //down
+	      player.runningBack = true;
+	      break;
+	    case 32: //space
+	      player.fire();
+	      break;
+	    }
+	  };
+	  document.onkeyup = function (e) {
+	    switch(e.keyCode) {
+	      case 87: // w
+	      case 38: //up
+	        player.runningForwards = false;
+	        break;
+	      case 68: // d
+	      case 39: //right
+	        player.runningRight = false;
+	        break;
+	      case 65: // a
+	      case 37: //left
+	        player.runningLeft = false;
+	        break;
+	      case 83: // s
+	      case 40: //down
+	        player.runningBack = false;
+	        break;
+	    }
+	  };
+	};
+	
+	module.exports = controller;
+
+
+/***/ },
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Sprite = __webpack_require__(2);
-	var objects = __webpack_require__(3);
+	var Util = __webpack_require__(3);
+	var objects = __webpack_require__(4);
 	
-	var cursor = {
-	  pos: {
-	    x: 90,
-	    y: 90,
-	  },
-	  run: function () {
-	    // do nothing
-	  },
-	  sprite: (new Sprite(32, 32, 0, [
-	    "crosshairs.gif",
-	  ])),
+	var Bullet = function (pos, cursor) {
+	  this.pos = {
+	    x: pos.x,
+	    y: pos.y,
+	  };
+	  this.angle = (Util.getAngle(this.pos, cursor.pos) * 180/Math.PI);
+	  this.sprite = (new Sprite(6, 6, 0, [
+	    "bullet.gif",
+	  ]));
+	  this.power = 9;
+	  this.speed = {
+	    x: this.power * Math.cos(this.angle * Math.PI/180),
+	    y: this.power * Math.sin(this.angle * Math.PI/180),
+	  };
 	};
 	
-	module.exports = cursor;
-
-
-/***/ },
-/* 9 */
-/***/ function(module, exports) {
-
-	util = {
-	  getAngle: function (posA, posB) {
-	    return Math.abs(Math.atan2(posB.y - posA.y, posB.x - posA.x));
-	  },
+	Bullet.prototype.run = function () {
+	  this.sprite.angle = this.angle;
+	  this.pos.x += this.speed.x;
+	  this.pos.y += this.speed.y;
 	};
 	
-	module.exports = util;
+	module.exports = Bullet;
 
 
 /***/ }
