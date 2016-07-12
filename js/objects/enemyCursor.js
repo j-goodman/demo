@@ -1,6 +1,7 @@
 var Sprite = require('../sprite.js');
 var objects = require('../boxes/objects.js');
 var Player = require('./player.js');
+var Util = require('../util.js');
 
 var enemyCursor = {
   pos: {
@@ -20,12 +21,12 @@ var enemyCursor = {
     if (this.speed.y > 7) {
       this.speed.y = 6;
     }
-    if (this.pos.x >= Player.pos.x + Player.speed.x*30) {
+    if (this.pos.x >= Player.pos.x + Player.speed.x*(Util.distanceBetween(this.pos, Player.pos)/9)) {
       this.speed.x -= 1;
     } else {
       this.speed.x += 1;
     }
-    if (this.pos.y >= Player.pos.y + Player.speed.y*30) {
+    if (this.pos.y >= Player.pos.y + Player.speed.y*(Util.distanceBetween(this.pos, Player.pos)/9)) {
       this.speed.y -= 1;
     } else {
       this.speed.y += 1;

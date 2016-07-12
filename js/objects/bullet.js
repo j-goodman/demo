@@ -23,9 +23,17 @@ var Bullet = function (pos, cursor) {
 
 Bullet.prototype.checkCollision = function () {
   if (Util.distanceBetween(this.pos, Player.pos) < Player.sprite.width/2) {
+    if (!Player.firsthit) {
+      console.log("Opponent wins.");
+      Player.firsthit = true;
+    }
     console.log("Player hit.");
   }
   if (Util.distanceBetween(this.pos, Enemy.pos) < Enemy.sprite.width/2) {
+    if (!Player.firsthit) {
+      console.log("Player wins.");
+      Player.firsthit = true;
+    }
     console.log("Opponent hit.");
   }
 };

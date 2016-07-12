@@ -5,10 +5,12 @@ var Util = require('../util.js');
 
 var player = {
   accel: 0.5,
+  age: 0,
   angle: 0,
   bullet: undefined, // defined in game.js
   cooldown: 30,
   cursor: undefined, // defined in game.js
+  firsthit: false,
   maxSpeed: 4,
   pos: {
     x: 400,
@@ -72,6 +74,7 @@ var player = {
   },
 
   run: function () {
+    this.age++;
     this.angle = (Util.getAngle(this.pos, this.cursor.pos) * 180/Math.PI);
     this.sprite.angle = this.angle;
     this.pos.x += this.speed.x;

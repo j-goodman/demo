@@ -59,4 +59,12 @@ Sprite.prototype.draw = function (ctx, pos, viewAnchor) {
   }
 };
 
+Sprite.prototype.drawNote = function (ctx, viewAnchor, text) {
+  if (ctx) {
+    ctx.fillStyle = 'white';
+    ctx.font = "20px Georgia";
+    ctx.fillText(text, 50+viewAnchor.x, 50+viewAnchor.y);
+  }
+};
+
 module.exports = Sprite;

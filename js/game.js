@@ -73,6 +73,9 @@ Window.newGame = function () {
       this.objects.forEach( function (object) {
         object.run();
         object.sprite.draw(ctx, object.pos, {x: 0, y: 0,});
+        if (Player.age < 200) {
+          Player.sprite.drawNote(ctx, {x: 0, y: 0,}, "Open the console for instructions (Ctrl + Shift + J / Cmd + Shift + J).");
+        }
       } );
 
       this.view.recenter(Player.pos);
