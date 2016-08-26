@@ -647,7 +647,7 @@
 /***/ function(module, exports) {
 
 	var controller = function (document, player) {
-	  document.onclick = function (e) {
+	  document.onmousedown = function (e) {
 	    player.fire();
 	  };
 	  document.onkeydown = function (e) {
