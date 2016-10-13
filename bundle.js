@@ -163,9 +163,13 @@
 	Bullet.prototype.checkCollision = function () {
 	  if (Util.distanceBetween(this.pos, Player.pos) < Player.sprite.width/2) {
 	    console.log("Player hit.");
+	    Player.pos.x -= 10000;
+	    Player.pos.y += 10000;
 	  }
 	  if (Util.distanceBetween(this.pos, Enemy.pos) < Enemy.sprite.width/2) {
 	    console.log("Opponent hit.");
+	    Enemy.pos.x -= 10000;
+	    Enemy.pos.y += 10000;
 	  }
 	};
 	
